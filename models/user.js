@@ -3,11 +3,11 @@ const Schema = mongoose.Schema;
 
 //create user Schema and model
 const UserSchema=new Schema({
-  id:String,
-  token:String,
+  _id:String,
+  //token:String,
   email:String,
   name:String,
-  img: { data: Buffer, contentType: String }
+  img: String
 });
 
 const User = mongoose.model('user',UserSchema);
