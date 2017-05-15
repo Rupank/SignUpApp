@@ -1,2 +1,5 @@
 client id : 207791074823-n47pkkjgjdnlma8bch1vf2lebg33lvte.apps.googleusercontent.com
 client secret: 2AZ5MnpcA9tj0YmBebeButDp
+npm install
+./node_modules/.bin/babel-node index.js
+"C:\Program Files\MongoDB\Server\3.4\bin\mongod.exe"

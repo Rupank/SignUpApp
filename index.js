@@ -100,7 +100,65 @@ function getAuthUrl () {
 // });
 
 //------------------Using Async Await
+async function getUserProfile(oauth2Client){
+  return new Promise(function (resolve, reject) {
+  plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, response) {
+       if(err){
+         reject(err);
+       }else{
+         resolve(response);
+       }
 
+    });
+})
+}
+async function getUserDatabase(obj){
+  return new Promise(function (resolve, reject) {
+  User.findOne({'_id':obj.id},function(err, response){
+       if(err){
+         reject(err);
+       }else{
+         resolve(response);
+       }
+
+    });
+})
+}
+async function getAll(){
+    try{
+      var data=await getUserProfile(oauth2Client);
+      var user= await getUserDatabase(data);
+      if (user) {
+          console.log('User already exits in the database');
+          // if a user is found, log them in
+          return user;
+      }
+      else{
+        console.log('Entering a new User into Database');
+          var newUser  = new User();
+
+          // set all of the relevant information
+          newUser._id    = await data.id;
+          newUser.name  = await data.displayName;
+          newUser.email = await data.emails[0].value; // pull the first email
+          newUser.img =  await data.image.url;
+
+          newUser.save(function(err) {
+              if (err){
+                console.log("error occured while saving user to database");
+                throw err;
+              }
+              console.log("User got inserted into database");
+              console.log(newUser);
+              return newUser;
+      });
+    }
+    }
+    catch(err){
+      console.log(err);
+    }
+
+}
 app.use("/oauthCallback", function (req, res) {
     var oauth2Client = getOAuthClient();
     var session = req.session;
@@ -110,84 +168,31 @@ app.use("/oauthCallback", function (req, res) {
       if(!err) {
         oauth2Client.setCredentials(tokens);
         session["tokens"]=tokens;
-        //console.log(tokens);
-        async function getUserProfile(){
-          return new Promise(function (resolve, reject) {
-          plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, response) {
-              return resolve(response || err);
-            });
-        })
+        //console.log(tokens)
+        getAll(oauth2Client);
+        res.render('status.ejs');
+      }//Login Successful
+        else{
+          res.send('Login Failed');
         }
-        function getAll(){
-          const data=await userProfile();
 
-          console.log(data);
-        }
-        getAll();
-      }
+      });
     });
-    });
-//         var p = new Promise(function (resolve, reject) {
-//             plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, response) {
-//                 resolve(response || err);
-//             });
-//         }).then(function (data) {
-//             //console.log(data);
-//
-//             User.findOne({ '_id' : data.id }).then(function(user){
-//               if (user) {
-//                   console.log('User already exits in the database');
-//                   // if a user is found, log them in
-//                   return user;
-//               } else{
-//                 console.log('Entering a new User into Database');
-//                 var newUser  = new User();
-//
-//                 // set all of the relevant information
-//                 newUser._id    = data.id;
-//               //  newUser.token = tokens;
-//                 newUser.name  = data.displayName;
-//                 newUser.email = data.emails[0].value; // pull the first email
-//                 newUser.img = data.image.url;
-//
-//                 newUser.save(function(err) {
-//                     if (err){
-//                       console.log("error occured while saving user to database");
-//                       throw err;
-//                     }
-//                     console.log("User got inserted into database");
-//                     console.log(newUser);
-//                     return newUser;
-//
-//                 });
-//               }
-//             });
-//
-//
-//         })
-//         //res.send('Login Successful');
-//         res.render('status.ejs');
-//       }
-//       else{
-//         res.send('Login Failed');
-//       }
-//     });
-// });
 
 app.use("/profileDetails", function (req, res) {
     var oauth2Client = getOAuthClient();
     oauth2Client.setCredentials(req.session["tokens"]);
+    var data;
+    (async function(){
+        data= await getUserProfile(oauth2Client);
+    }());
 
-    var p = new Promise(function (resolve, reject) {
-        plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, response) {
-            resolve(response || err);
-        });
-    }).then(function (data) {
-    //  console.log(data);
+    console.log('-------------------data');
+    console.log(data);
       res.render('profile.ejs',{
         data:data
       });
-    })
+
 });
 
 app.use("/", function (req, res) {
