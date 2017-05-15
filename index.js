@@ -124,6 +124,7 @@ async function getUserDatabase(obj){
     });
 })
 }
+
 async function getAll(oauth2Client){
     try{
       var data=await getUserProfile(oauth2Client);
@@ -169,10 +170,12 @@ app.use("/oauthCallback", function (req, res) {
         oauth2Client.setCredentials(tokens);
         session["tokens"]=tokens;
         //console.log(tokens)
+        var userData;
         (async function(){
-          await getAll(oauth2Client);
+          userData=await getAll(oauth2Client);
+          console.log('User credentials are: ');
+          console.log(userData);
         }());
-
         res.render('status.ejs');
       }//Login Successful
         else{
@@ -185,16 +188,12 @@ app.use("/oauthCallback", function (req, res) {
 app.use("/profileDetails", function (req, res) {
     var oauth2Client = getOAuthClient();
     oauth2Client.setCredentials(req.session["tokens"]);
-    var data;
     (async function(){
-        data= await getUserProfile(oauth2Client);
-    }());
-
-    console.log('-------------------data');
-    console.log(data);
+      var data= await getUserProfile(oauth2Client);
       res.render('profile.ejs',{
         data:data
       });
+    }());
 
 });
 
