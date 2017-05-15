@@ -124,7 +124,7 @@ async function getUserDatabase(obj){
     });
 })
 }
-async function getAll(){
+async function getAll(oauth2Client){
     try{
       var data=await getUserProfile(oauth2Client);
       var user= await getUserDatabase(data);
@@ -169,7 +169,10 @@ app.use("/oauthCallback", function (req, res) {
         oauth2Client.setCredentials(tokens);
         session["tokens"]=tokens;
         //console.log(tokens)
-        getAll(oauth2Client);
+        (async function(){
+          await getAll(oauth2Client);
+        }());
+
         res.render('status.ejs');
       }//Login Successful
         else{
