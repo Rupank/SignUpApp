@@ -3,6 +3,8 @@ var express = require('express');
 var Session = require('express-session');
 var google = require('googleapis');
 var mongoose=require('mongoose');
+// var async = require('asyncawait/async');
+// var await = require('asyncawait/await');
 var plus = google.plus('v1');
 var OAuth2 = google.auth.OAuth2;
 var port     = process.env.PORT || 8080;
@@ -10,8 +12,8 @@ const User=require('./models/user.js');
 var configAuth = require('./config/auth');
 
 var app = express();
-//mongoose.connect('mongodb://localhost/googleDB'); // connect to our database
-mongoose.connect('mongodb://rupank:4121996110249@ds137261.mlab.com:37261/heroku_w1fcg7kf'); // connect to our database
+mongoose.connect('mongodb://localhost/googleDB'); // connect to our database
+//mongoose.connect('mongodb://rupank:4121996110249@ds137261.mlab.com:37261/heroku_w1fcg7kf'); // connect to our database
 app.set('view engine', 'ejs'); // set up ejs for templating
 app.use(Session({
     secret: 'rupankSecretKey',
@@ -38,6 +40,67 @@ function getAuthUrl () {
     return url;
 }
 
+// app.use("/oauthCallback", function (req, res) {
+//     var oauth2Client = getOAuthClient();
+//     var session = req.session;
+//     var code = req.query.code;
+//     oauth2Client.getToken(code, function(err, tokens) {
+//       // Now tokens contains an access_token and an optional refresh_token. Save them.
+//       if(!err) {
+//         oauth2Client.setCredentials(tokens);
+//         session["tokens"]=tokens;
+//         //console.log(tokens);
+//
+//
+//         var p = new Promise(function (resolve, reject) {
+//             plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, response) {
+//                 resolve(response || err);
+//             });
+//         }).then(function (data) {
+//             //console.log(data);
+//
+//             User.findOne({ '_id' : data.id }).then(function(user){
+//               if (user) {
+//                   console.log('User already exits in the database');
+//                   // if a user is found, log them in
+//                   return user;
+//               } else{
+//                 console.log('Entering a new User into Database');
+//                 var newUser  = new User();
+//
+//                 // set all of the relevant information
+//                 newUser._id    = data.id;
+//               //  newUser.token = tokens;
+//                 newUser.name  = data.displayName;
+//                 newUser.email = data.emails[0].value; // pull the first email
+//                 newUser.img = data.image.url;
+//
+//                 newUser.save(function(err) {
+//                     if (err){
+//                       console.log("error occured while saving user to database");
+//                       throw err;
+//                     }
+//                     console.log("User got inserted into database");
+//                     console.log(newUser);
+//                     return newUser;
+//
+//                 });
+//               }
+//             });
+//
+//
+//         })
+//         //res.send('Login Successful');
+//         res.render('status.ejs');
+//       }
+//       else{
+//         res.send('Login Failed');
+//       }
+//     });
+// });
+
+//------------------Using Async Await
+
 app.use("/oauthCallback", function (req, res) {
     var oauth2Client = getOAuthClient();
     var session = req.session;
@@ -48,54 +111,68 @@ app.use("/oauthCallback", function (req, res) {
         oauth2Client.setCredentials(tokens);
         session["tokens"]=tokens;
         //console.log(tokens);
-
-
-        var p = new Promise(function (resolve, reject) {
-            plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, response) {
-                resolve(response || err);
+        async function getUserProfile(){
+          return new Promise(function (resolve, reject) {
+          plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, response) {
+              return resolve(response || err);
             });
-        }).then(function (data) {
-            //console.log(data);
-
-            User.findOne({ '_id' : data.id }).then(function(user){
-              if (user) {
-                  console.log('User already exits in the database');
-                  // if a user is found, log them in
-                  return user;
-              } else{
-                console.log('Entering a new User into Database');
-                var newUser  = new User();
-
-                // set all of the relevant information
-                newUser._id    = data.id;
-              //  newUser.token = tokens;
-                newUser.name  = data.displayName;
-                newUser.email = data.emails[0].value; // pull the first email
-                newUser.img = data.image.url;
-
-                newUser.save(function(err) {
-                    if (err){
-                      console.log("error occured while saving user to database");
-                      throw err;
-                    }
-                    console.log("User got inserted into database");
-                    console.log(newUser);
-                    return newUser;
-
-                });
-              }
-            });
-
-
         })
-        //res.send('Login Successful');
-        res.render('status.ejs');
-      }
-      else{
-        res.send('Login Failed');
+        }
+        function getAll(){
+          const data=await userProfile();
+
+          console.log(data);
+        }
+        getAll();
       }
     });
-});
+    });
+//         var p = new Promise(function (resolve, reject) {
+//             plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, response) {
+//                 resolve(response || err);
+//             });
+//         }).then(function (data) {
+//             //console.log(data);
+//
+//             User.findOne({ '_id' : data.id }).then(function(user){
+//               if (user) {
+//                   console.log('User already exits in the database');
+//                   // if a user is found, log them in
+//                   return user;
+//               } else{
+//                 console.log('Entering a new User into Database');
+//                 var newUser  = new User();
+//
+//                 // set all of the relevant information
+//                 newUser._id    = data.id;
+//               //  newUser.token = tokens;
+//                 newUser.name  = data.displayName;
+//                 newUser.email = data.emails[0].value; // pull the first email
+//                 newUser.img = data.image.url;
+//
+//                 newUser.save(function(err) {
+//                     if (err){
+//                       console.log("error occured while saving user to database");
+//                       throw err;
+//                     }
+//                     console.log("User got inserted into database");
+//                     console.log(newUser);
+//                     return newUser;
+//
+//                 });
+//               }
+//             });
+//
+//
+//         })
+//         //res.send('Login Successful');
+//         res.render('status.ejs');
+//       }
+//       else{
+//         res.send('Login Failed');
+//       }
+//     });
+// });
 
 app.use("/profileDetails", function (req, res) {
     var oauth2Client = getOAuthClient();
