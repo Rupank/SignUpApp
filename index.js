@@ -137,10 +137,10 @@ async function getAll(oauth2Client){
           var newUser  = new User();
 
           // set all of the relevant information
-          newUser._id    = await data.id;
-          newUser.name  = await data.displayName;
-          newUser.email = await data.emails[0].value; // pull the first email
-          newUser.img =  await data.image.url;
+          newUser._id    =  data.id;
+          newUser.name  =  data.displayName;
+          newUser.email =  data.emails[0].value; // pull the first email
+          newUser.img =   data.image.url;
 
           newUser.save(function(err) {
               if (err){
@@ -158,22 +158,20 @@ async function getAll(oauth2Client){
     }
 
 }
-app.use("/oauthCallback", function (req, res) {
+app.use("/oauthCallback", async function (req, res) {
     var oauth2Client = getOAuthClient();
     var session = req.session;
     var code = req.query.code;
-    oauth2Client.getToken(code, function(err, tokens) {
+    oauth2Client.getToken(code, async function(err, tokens) {
       // Now tokens contains an access_token and an optional refresh_token. Save them.
       if(!err) {
         oauth2Client.setCredentials(tokens);
         session["tokens"]=tokens;
         //console.log(tokens)
-        var userData;
-        (async function(){
-          userData=await getAll(oauth2Client);
+
+        var  userData=await getAll(oauth2Client);
           console.log('User credentials are: ');
           console.log(userData);
-        }());
         res.render('status.ejs');
       }//Login Successful
         else{
@@ -183,15 +181,15 @@ app.use("/oauthCallback", function (req, res) {
       });
     });
 
-app.use("/profileDetails", function (req, res) {
+app.use("/profileDetails", async function (req, res) {
     var oauth2Client = getOAuthClient();
     oauth2Client.setCredentials(req.session["tokens"]);
-    (async function(){
+
       var data= await getUserProfile(oauth2Client);
       res.render('profile.ejs',{
         data:data
       });
-    }());
+
 
 });
 
