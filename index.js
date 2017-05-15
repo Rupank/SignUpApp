@@ -3,8 +3,6 @@ var express = require('express');
 var Session = require('express-session');
 var google = require('googleapis');
 var mongoose=require('mongoose');
-// var async = require('asyncawait/async');
-// var await = require('asyncawait/await');
 var plus = google.plus('v1');
 var OAuth2 = google.auth.OAuth2;
 var port     = process.env.PORT || 8080;
@@ -12,8 +10,8 @@ const User=require('./models/user.js');
 var configAuth = require('./config/auth');
 
 var app = express();
-mongoose.connect('mongodb://localhost/googleDB'); // connect to our database
-//mongoose.connect('mongodb://rupank:4121996110249@ds137261.mlab.com:37261/heroku_w1fcg7kf'); // connect to our database
+//mongoose.connect('mongodb://localhost/googleDB'); // connect to our database
+mongoose.connect('mongodb://rupank:4121996110249@ds137261.mlab.com:37261/heroku_w1fcg7kf'); // connect to our database
 app.set('view engine', 'ejs'); // set up ejs for templating
 app.use(Session({
     secret: 'rupankSecretKey',
